@@ -1,4 +1,4 @@
-(lang dune 3.12)
+(lang dune 3.18)
 ;          ^^^^
 ; When changing the version, don't forget to regenerate *.opam files
 ; by running [dune build].
@@ -18,6 +18,7 @@
 (authors "Jane Street Group, LLC <opensource@janestreet.com>")
 (source (github ocaml/dune))
 (documentation "https://dune.readthedocs.io/")
+(maintenance_intent "(latest)")
 
 (implicit_transitive_deps false)
 
