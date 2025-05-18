@@ -51,6 +51,13 @@ module Repository = struct
     }
   ;;
 
+  let jst_oxcaml =
+    { name = "jst"
+    ; url = (* TODO: change url *)
+        Loc.none, OpamUrl.of_string "git+https://github.com/art-w/jst-opam-repository.git#dune-pkg"
+    }
+  ;;
+
   let binary_packages =
     { name = "binary-packages"
     ; url =

@@ -2,7 +2,7 @@ open Import
 open Dune_lang.Decoder
 module Repository = Dune_pkg.Pkg_workspace.Repository
 
-let default_repositories = [ Repository.overlay; Repository.upstream ]
+let default_repositories = [ Repository.jst_oxcaml; Repository.overlay; Repository.upstream ]
 
 module Lock_dir = struct
   type t =

@@ -411,8 +411,8 @@ module Component = struct
             ~description:(Some "A longer description")
             ~tags:[ "add topics"; "to describe"; "your"; "project" ]
             ~depends:
-              [ { Package_dependency.name = Package.Name.of_string "ocaml"
-                ; constraint_ = None
+              [ { Package_dependency.name = Package.Name.of_string "ocaml-variants"
+                ; constraint_ = Some (Package_constraint.Uop (Relop.Eq, String_literal "5.2.0+flambda2"))
                 }
               ]
         in
