@@ -56,6 +56,7 @@ module Kind = struct
     | Impl_vmodule
     | Wrapped_compat
     | Root
+    | Parameter
 
   let to_dyn =
     let open Dyn in
@@ -67,6 +68,7 @@ module Kind = struct
     | Impl_vmodule -> variant "Impl_vmodule" []
     | Wrapped_compat -> variant "Wrapped_compat" []
     | Root -> variant "Root" []
+    | Parameter -> variant "Parameter" []
   ;;
 
   let encode =
@@ -82,6 +84,7 @@ module Kind = struct
     | Impl_vmodule -> string "impl_vmodule"
     | Wrapped_compat -> string "wrapped_compat"
     | Root -> string "root"
+    | Parameter -> string "parameter"
   ;;
 
   let decode =
@@ -93,6 +96,7 @@ module Kind = struct
       ; "impl_vmodule", return Impl_vmodule
       ; "wrapped_compat", return Wrapped_compat
       ; "root", return Root
+      ; "parameter", return Parameter
       ; ( "alias"
         , let* next = peek in
           (* TODO remove this once everyone recompiles *)
@@ -106,7 +110,7 @@ module Kind = struct
 
   let has_impl = function
     | Alias _ | Impl_vmodule | Wrapped_compat | Root | Impl -> true
-    | Intf_only | Virtual -> false
+    | Intf_only | Virtual | Parameter -> false
   ;;
 end
 
@@ -221,7 +225,7 @@ let of_source ?install_as ~obj_name ~visibility ~(kind : Kind.t) (source : Sourc
   (match kind, visibility with
    | (Alias _ | Impl_vmodule | Virtual | Wrapped_compat), Visibility.Public
    | Root, Private
-   | (Impl | Intf_only), _ -> ()
+   | (Impl | Intf_only | Parameter), _ -> ()
    | _, _ ->
      Code_error.raise
        "Module.of_source: invalid kind, visibility combination"
@@ -359,8 +363,14 @@ let encode ({ source; obj_name; pp = _; visibility; kind; install_as = _ } as t)
     match kind with
     | Kind.Impl when has_impl -> None
     | Intf_only when not has_impl -> None
-    | Root | Wrapped_compat | Impl_vmodule | Alias _ | Impl | Virtual | Intf_only ->
-      Some kind
+    | Root
+    | Wrapped_compat
+    | Impl_vmodule
+    | Alias _
+    | Impl
+    | Virtual
+    | Intf_only
+    | Parameter -> Some kind
   in
   record_fields
     [ field "obj_name" Module_name.Unique.encode obj_name
