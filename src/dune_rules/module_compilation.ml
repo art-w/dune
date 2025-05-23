@@ -39,13 +39,13 @@ let copy_interface ~sctx ~dir ~obj_dir ~cm_kind m =
     (Module.visibility m <> Visibility.Private
      && Obj_dir.need_dedicated_public_dir obj_dir)
     (fun () ->
-       let cmi_kind = Lib_mode.Cm_kind.cmi cm_kind in
-       Super_context.add_rule
-         sctx
-         ~dir
-         (Action_builder.symlink
-            ~src:(Path.build (Obj_dir.Module.cm_file_exn obj_dir m ~kind:cmi_kind))
-            ~dst:(Obj_dir.Module.cm_public_file_exn obj_dir m ~kind:cmi_kind)))
+      let cmi_kind = Lib_mode.Cm_kind.cmi cm_kind in
+      Super_context.add_rule
+        sctx
+        ~dir
+        (Action_builder.symlink
+           ~src:(Path.build (Obj_dir.Module.cm_file_exn obj_dir m ~kind:cmi_kind))
+           ~dst:(Obj_dir.Module.cm_public_file_exn obj_dir m ~kind:cmi_kind)))
 ;;
 
 let melange_args (cctx : Compilation_context.t) (cm_kind : Lib_mode.Cm_kind.t) module_ =
@@ -84,12 +84,12 @@ let melange_args (cctx : Compilation_context.t) (cm_kind : Lib_mode.Cm_kind.t) m
 ;;
 
 let build_cm
-      cctx
-      ~force_write_cmi
-      ~precompiled_cmi
-      ~cm_kind
-      (m : Module.t)
-      ~(phase : Fdo.phase option)
+  cctx
+  ~force_write_cmi
+  ~precompiled_cmi
+  ~cm_kind
+  (m : Module.t)
+  ~(phase : Fdo.phase option)
   =
   if force_write_cmi && precompiled_cmi
   then Code_error.raise "force_read_cmi and precompiled_cmi are mutually exclusive" [];
@@ -208,10 +208,16 @@ let build_cm
      else Command.Args.empty
    in
    let as_parameter_arg = if Module.kind m = Parameter then [ "-as-parameter" ] else [] in
-   let as_argument_for = match Module.implements m with
-    | None -> []
-    | Some module_name -> [ "-as-argument-for" ; Module_name.to_string module_name]
-    in
+   let as_argument_for =
+     match Module.implements m with
+     | None -> []
+     | Some module_name -> [ "-as-argument-for"; Module_name.to_string module_name ]
+   in
+   let parameters =
+     List.map (Module.parameters m) ~f:(fun m ->
+       [ "-parameter"; Module_name.to_string m ])
+     |> List.concat
+   in
    let flags, sandbox =
      let flags =
        Command.Args.dyn (Ocaml_flags.get (Compilation_context.flags cctx) mode)
@@ -267,6 +273,7 @@ let build_cm
             ; As extra_args
             ; As as_parameter_arg
             ; As as_argument_for
+            ; As parameters
             ; S (melange_args cctx cm_kind m)
             ; A "-no-alias-deps"
             ; opaque_arg

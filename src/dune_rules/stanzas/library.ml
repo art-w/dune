@@ -529,6 +529,7 @@ let to_lib_info
     | Installed_private | Installed | Private _ -> None
   in
   let requires = conf.buildable.libraries in
+  let parameters = conf.buildable.parameters in
   let loc = conf.buildable.loc in
   let kind = conf.kind in
   let src_dir = dir in
@@ -568,6 +569,7 @@ let to_lib_info
     ~main_module_name
     ~sub_systems
     ~requires
+    ~parameters
     ~foreign_objects
     ~public_headers
     ~plugins

@@ -4,7 +4,7 @@ module File = struct
   type t =
     { path : Path.t
     ; original_path : Path.t
-      (* while path can be changed for a module (when it is being pp'ed), the
+        (* while path can be changed for a module (when it is being pp'ed), the
            original_path stays the same and points to an original source file *)
     ; dialect : Dialect.t
     }
@@ -214,6 +214,7 @@ type t =
   ; kind : Kind.t
   ; install_as : Path.Local.t option
   ; implements : Module_name.t option
+  ; parameters : Module_name.t list
   }
 
 let name t = Source.name t.source
@@ -222,10 +223,17 @@ let kind t = t.kind
 let pp_flags t = t.pp
 let install_as t = t.install_as
 let implements t = t.implements
+let set_implements t name = { t with implements = Some name }
+let parameters t = t.parameters
 
-let set_implements t name = { t with implements = Some name}
-
-let of_source ?install_as ~obj_name ~visibility ~(kind : Kind.t) (source : Source.t) =
+let of_source
+  ?install_as
+  ~obj_name
+  ~visibility
+  ~(kind : Kind.t)
+  ~parameters
+  (source : Source.t)
+  =
   (match kind, visibility with
    | (Alias _ | Impl_vmodule | Virtual | Wrapped_compat), Visibility.Public
    | Root, Private
@@ -260,7 +268,15 @@ let of_source ?install_as ~obj_name ~visibility ~(kind : Kind.t) (source : Sourc
          indication by the caller. *)
       Module_name.Unique.of_path_assuming_needs_no_mangling_allow_invalid file.path
   in
-  { install_as; source; obj_name; pp = None; visibility; kind ; implements = None }
+  { install_as
+  ; source
+  ; obj_name
+  ; pp = None
+  ; visibility
+  ; kind
+  ; implements = None
+  ; parameters
+  }
 ;;
 
 let has t ~ml_kind =
@@ -303,8 +319,7 @@ let map_files t ~f =
 let src_dir t = Source.src_dir t.source
 let set_pp t pp = { t with pp }
 
-(* TODO @maiste encoding *)
-let to_dyn { source; obj_name; pp; visibility; kind; install_as ; _ } =
+let to_dyn { source; obj_name; pp; visibility; kind; install_as; _ (* TODO ARTHUR *) } =
   Dyn.record
     [ "source", Source.to_dyn source
     ; "obj_name", Module_name.Unique.to_dyn obj_name
@@ -361,7 +376,11 @@ module Obj_map = struct
     end)
 end
 
-let encode ({ source; obj_name; pp = _; visibility; kind; install_as = _ ; _ } as t) ~src_dir =
+let encode
+  ({ source; obj_name; pp = _; visibility; kind; install_as = _; _ (* TODO ARTHUR *) } as
+   t)
+  ~src_dir
+  =
   let open Dune_lang.Encoder in
   let has_impl = has t ~ml_kind:Impl in
   let kind =
@@ -398,7 +417,15 @@ let decode ~src_dir =
        | None when Option.is_some source.files.impl -> Impl
        | None -> Intf_only
      in
-      { install_as = None; source; obj_name; pp = None; kind; visibility; implements = None })
+     { install_as = None
+     ; source
+     ; obj_name
+     ; pp = None
+     ; kind
+     ; visibility
+     ; implements = None
+     ; parameters = [] (* TODO ARTHUR *)
+     })
 ;;
 
 let pped =
@@ -422,7 +449,14 @@ let version_installed t ~src_root ~install_dir =
   map_files t ~f:(fun _ -> File.version_installed ~src_root ~install_dir)
 ;;
 
-let generated ?install_as ?obj_name ~(kind : Kind.t) ~src_dir (path : Module_name.Path.t) =
+let generated
+  ?install_as
+  ?obj_name
+  ~(kind : Kind.t)
+  ~src_dir
+  ~parameters
+  (path : Module_name.Path.t)
+  =
   let obj_name =
     match obj_name with
     | Some obj_name -> obj_name
@@ -440,10 +474,12 @@ let generated ?install_as ?obj_name ~(kind : Kind.t) ~src_dir (path : Module_nam
     | Root -> Private
     | _ -> Public
   in
-  of_source ?install_as ~visibility ~kind ~obj_name:(Some obj_name) source
+  of_source ?install_as ~visibility ~kind ~obj_name:(Some obj_name) ~parameters source
 ;;
 
-let of_source ~visibility ~kind source = of_source ~obj_name:None ~visibility ~kind source
+let of_source ~visibility ~kind ~parameters source =
+  of_source ~obj_name:None ~visibility ~kind ~parameters source
+;;
 
 module Name_map = struct
   type nonrec t = t Module_name.Map.t

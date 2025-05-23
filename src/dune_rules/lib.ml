@@ -939,6 +939,11 @@ end = struct
       |> resolve_deps_and_add_runtime_deps db ~private_deps ~dune_version ~pps
       |> Memo.map ~f:Resolve.return
     in
+    let* _params =
+      Lib_info.parameters info
+      |> resolve_simple_deps db ~private_deps
+      |> Memo.map ~f:Resolve.return
+    in
     let* implements =
       match Lib_info.implements info with
       | None -> Memo.return None
@@ -959,8 +964,11 @@ end = struct
     let* requires =
       let requires =
         let open Resolve.O in
-        let* resolved = resolved in
-        resolved.requires
+        let* resolved = resolved
+        and* resolved_params = _params in
+        match Resolve.to_result resolved.requires, Resolve.to_result resolved_params with
+        | Ok a, Ok b -> Resolve.of_result (Ok (a @ b))
+        | _ -> failwith "TODO arthur"
       in
       match implements with
       | None -> Memo.return requires

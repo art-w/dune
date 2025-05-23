@@ -11,6 +11,7 @@ type t =
   ; modules : Stanza_common.Modules_settings.t
   ; empty_module_interface_if_absent : bool
   ; libraries : Lib_dep.t list
+  ; parameters : (Loc.t * Lib_name.t) list
   ; foreign_archives : (Loc.t * Foreign.Archive.t) list
   ; extra_objects : Foreign.Objects.t
   ; foreign_stubs : Foreign.Stubs.t list
@@ -87,6 +88,9 @@ let decode (for_ : for_) =
              >>> enter (maybe string))))
   and+ libraries =
     field "libraries" (Lib_dep.L.decode ~allow_re_export:in_library) ~default:[]
+  and+ parameters =
+    Dune_lang.Syntax.since Stanza.syntax (1, 18)
+    >>> field "parameters" (repeat (located Lib_name.decode)) ~default:[]
   and+ flags = Ocaml_flags.Spec.decode
   and+ js_of_ocaml =
     field
@@ -168,6 +172,7 @@ let decode (for_ : for_) =
   ; foreign_archives
   ; extra_objects
   ; libraries
+  ; parameters
   ; flags
   ; js_of_ocaml = { js = js_of_ocaml; wasm = wasm_of_ocaml }
   ; allow_overlapping_dependencies

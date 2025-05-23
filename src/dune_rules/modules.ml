@@ -232,7 +232,7 @@ module Mangle = struct
              (List.map ~f:Module_name.uncapitalize path)
            |> Path.Local.set_extension ~ext:".ml")
     in
-    Module.generated ?install_as path ~obj_name ~kind ~src_dir:obj_dir
+    Module.generated ?install_as path ~obj_name ~kind ~src_dir:obj_dir ~parameters:[]
   ;;
 
   let wrap_module t m ~interface =

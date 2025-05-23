@@ -92,6 +92,7 @@ module Lib = struct
     let sub_systems = Lib_info.sub_systems info in
     let plugins = Lib_info.plugins info in
     let requires = Lib_info.requires info in
+    let parameters = Lib_info.parameters info in
     let foreign_objects =
       match Lib_info.foreign_objects info with
       | External e -> e
@@ -142,6 +143,7 @@ module Lib = struct
        ; paths "jsoo_runtime" jsoo_runtime
        ; paths "wasmoo_runtime" wasmoo_runtime
        ; Lib_dep.L.field_encode requires ~name:"requires"
+       ; field_l "parameters" (no_loc Lib_name.encode) parameters
        ; libs "ppx_runtime_deps" ppx_runtime_deps
        ; field_o "implements" (no_loc Lib_name.encode) implements
        ; field_o "default_implementation" (no_loc Lib_name.encode) default_implementation
@@ -219,6 +221,7 @@ module Lib = struct
        and+ wasmoo_runtime = paths "wasmoo_runtime"
        and+ melange_runtime_deps = paths "melange_runtime_deps"
        and+ requires = field_l "requires" (Lib_dep.decode ~allow_re_export:true)
+       and+ parameters = field_l "parameters" (located Lib_name.decode)
        and+ ppx_runtime_deps = libs "ppx_runtime_deps"
        and+ virtual_ = field_b "virtual"
        and+ is_parameter = field_b "is_parameter"
@@ -273,6 +276,7 @@ module Lib = struct
            ~main_module_name
            ~sub_systems
            ~requires
+           ~parameters
            ~foreign_objects
            ~public_headers
            ~plugins

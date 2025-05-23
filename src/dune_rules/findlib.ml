@@ -153,6 +153,10 @@ let to_dune_library (t : Findlib.Package.t) ~dir_contents ~ext_lib ~external_loc
         in
         lib_dep (add_loc name))
     in
+    let parameters =
+      []
+      (* failwith "todo arthur" *)
+    in
     let ppx_runtime_deps = List.map ~f:add_loc (Findlib.Package.ppx_runtime_deps t) in
     let special_builtin_support : (Loc.t * Lib_info.Special_builtin_support.t) option =
       (* findlib has been around for much longer than dune, so it is
@@ -258,6 +262,7 @@ let to_dune_library (t : Findlib.Package.t) ~dir_contents ~ext_lib ~external_loc
       ~main_module_name
       ~sub_systems
       ~requires
+      ~parameters
       ~foreign_objects
       ~public_headers
       ~plugins

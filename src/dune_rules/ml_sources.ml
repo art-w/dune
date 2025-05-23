@@ -356,6 +356,21 @@ let make_lib_modules
       ~include_subdirs:(loc_include_subdirs, (include_subdirs : Include_subdirs.t))
       ~version
   =
+  let* parameters =
+    let open Memo.O in
+    let* libs = libs in
+    Memo.List.map lib.buildable.parameters ~f:(fun (_loc, param_name) ->
+      let* r = Lib.DB.find libs param_name in
+      match r with
+      | Some lib ->
+        let+ m = Resolve.Memo.read_memo @@ Lib.main_module_name lib in
+        (match m with
+         | Some m -> m
+         | None ->
+           failwith
+             ("todo arthur: no main module for " ^ (Lib.name lib |> Lib_name.to_string)))
+      | None -> failwith "todo arthur: param lib not found")
+  in
   let open Resolve.Memo.O in
   let* kind, main_module_name, wrapped =
     match lib.implements with
@@ -408,6 +423,7 @@ let make_lib_modules
     let { Buildable.loc = stanza_loc; modules = modules_settings; _ } = lib.buildable in
     Modules_field_evaluator.eval
       ~expander
+      ~parameters
       ~modules
       ~stanza_loc
       ~kind
@@ -479,6 +495,7 @@ let modules_of_stanzas =
       in
       Modules_field_evaluator.eval
         ~expander
+        ~parameters:[]
         ~modules
         ~stanza_loc
         ~src_dir:dir
@@ -538,6 +555,7 @@ let modules_of_stanzas =
              let version = Dune_project.dune_version project in
              Modules_field_evaluator.eval
                ~expander
+               ~parameters:[]
                ~modules
                ~stanza_loc:mel.loc
                ~kind:Modules_field_evaluator.Exe_or_normal_lib

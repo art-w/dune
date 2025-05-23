@@ -51,7 +51,9 @@ $ /home/arthur/tarides/miniprintml/_build/default/ppml.exe _build/default/param_
   (library
    (name param.intf)
    (kind parameter)
+   (is_parameter)
    (requires ppx_deriving.runtime)
+   (main_module_name Param_intf)
    (modes byte)
    (modules
     (singleton

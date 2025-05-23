@@ -22,7 +22,8 @@ let generate_and_compile_module cctx ~precompiled_cmi ~obj_name ~name ~lib ~code
       let obj_dir = Compilation_context.obj_dir cctx in
       Obj_dir.obj_dir obj_dir
     in
-    Module.generated ?obj_name ~kind:Impl ~src_dir [ name ]
+    (* TODO: use lib.buildable.parameters? *)
+    Module.generated ?obj_name ~kind:Impl ~src_dir [ name ] ~parameters:[]
   in
   let* () =
     let dir = Compilation_context.dir cctx in
