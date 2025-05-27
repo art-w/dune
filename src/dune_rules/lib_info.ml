@@ -368,7 +368,7 @@ let kind t = t.kind
 let default_implementation t = t.default_implementation
 let obj_dir t = t.obj_dir
 let virtual_ t = t.virtual_
-let is_parameter t = t.is_parameter
+let is_parameter t = t.kind = Parameter
 let implements t = t.implements
 let synopsis t = t.synopsis
 let wrapped t = t.wrapped
