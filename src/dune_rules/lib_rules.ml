@@ -443,21 +443,18 @@ let setup_build_archives (lib : Library.t) ~top_sorted_modules ~cctx ~expander ~
     Lib_info.eval_native_archives_exn lib_info ~modules:(Some modules)
   in
   let* () =
-    if Library.is_parameter lib
-    then Memo.return ()
-    else (
-      let cm_files =
-        let excluded_modules =
-          (* ctypes type_gen and function_gen scripts should not be included in the
+    let cm_files =
+      let excluded_modules =
+        (* ctypes type_gen and function_gen scripts should not be included in the
            library. Otherwise they will spew stuff to stdout on library load. *)
-          match lib.buildable.ctypes with
-          | Some ctypes -> Ctypes_field.non_installable_modules ctypes
-          | None -> []
-        in
-        Cm_files.make ~excluded_modules ~obj_dir ~ext_obj ~modules ~top_sorted_modules ()
+        match lib.buildable.ctypes with
+        | Some ctypes -> Ctypes_field.non_installable_modules ctypes
+        | None -> []
       in
-      iter_modes_concurrently modes.ocaml ~f:(fun mode ->
-        build_lib lib ~native_archives ~dir ~sctx ~expander ~flags ~mode ~cm_files))
+      Cm_files.make ~excluded_modules ~obj_dir ~ext_obj ~modules ~top_sorted_modules ()
+    in
+    iter_modes_concurrently modes.ocaml ~f:(fun mode ->
+      build_lib lib ~native_archives ~dir ~sctx ~expander ~flags ~mode ~cm_files)
   and* () =
     (* Build *.cma.js / *.wasma *)
     Memo.when_ modes.ocaml.byte (fun () ->
